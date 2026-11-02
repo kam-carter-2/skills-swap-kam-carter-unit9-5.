@@ -318,3 +318,55 @@ footer {
         grid-template-columns: 1fr;
     }
 }
+
+.create-section {
+    margin-top: 32px;
+}
+
+.create-section h2 {
+    margin-top: 0;
+}
+
+#skill-form {
+    display: grid;
+    gap: 12px;
+    max-width: 650px;
+    margin-top: 24px;
+}
+
+#skill-form label {
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+#skill-form input,
+#skill-form select,
+#skill-form textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #dfe3ed;
+    border-radius: 9px;
+    font: inherit;
+}
+
+#skill-form input:focus,
+#skill-form select:focus,
+#skill-form textarea:focus {
+    outline: 2px solid #6558d9;
+    border-color: #6558d9;
+}
+
+.submit-button {
+    padding: 13px 20px;
+    color: white;
+    background: #6558d9;
+    border: 0;
+    border-radius: 9px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.submit-button:hover {
+    background: #5043bd;
+}
+
