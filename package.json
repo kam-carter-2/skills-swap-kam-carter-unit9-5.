@@ -4,8 +4,9 @@
   "description": "Skill Swap is a homepage for a community where people can share their skills, discover learning opportunities, and connect with other learners.",
   "main": "script.js",
   "scripts": {
-    "test": "jest"
-  },
+  "test": "jest",
+  "dev": "vite --host 0.0.0.0"
+},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/kam-carter-2/skillswap-demo.git"
@@ -19,6 +20,7 @@
   },
   "homepage": "https://github.com/kam-carter-2/skillswap-demo#readme",
   "devDependencies": {
-    "jest": "^30.5.2"
+    "jest": "^30.5.2",
+    "vite": "^8.3.5"
   }
 }

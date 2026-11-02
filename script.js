@@ -1,19 +1,32 @@
-
-cat > script.js <<'EOF'
-const skills = [
-    { title: "Python Tutoring", category: "Programming", price: 20, description: "Learn Python basics, coding practice, and debugging.", initials: "PY" },
-    { title: "Guitar Lessons", category: "Music", price: 15, description: "Learn chords and practice your favorite songs.", initials: "GU" },
-    { title: "Resume Review", category: "Career", price: 0, description: "Get feedback on your resume and job applications.", initials: "CV" },
-    { title: "Web Development", category: "Programming", price: 25, description: "Learn HTML, CSS, and JavaScript.", initials: "WD" }
-];
-
 const skillsList = document.getElementById("skills-list");
 const skillCount = document.getElementById("skill-count");
 const emptyMessage = document.getElementById("empty-message");
+const loadingMessage = document.getElementById("loading-message");
+const errorMessage = document.getElementById("error-message");
 const filterButtons = document.querySelectorAll(".filter-button");
+const skillForm = document.getElementById("skill-form");
+const formMessage = document.getElementById("form-message");
 
-function renderSkills(category = "All") {
-    const filtered = window.SkillSwapFunctions.filterSkillsByCategory(skills, category);
+let skills = [];
+let selectedCategory = "All";
+
+function getInitials(title) {
+    return title
+        .split(" ")
+        .map(word => word[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase();
+}
+
+function renderSkills(category = selectedCategory) {
+    selectedCategory = category;
+
+    const filtered = window.SkillSwapFunctions.filterSkillsByCategory(
+        skills,
+        category
+    );
+
     skillsList.replaceChildren();
 
     filtered.forEach(skill => {
@@ -22,7 +35,7 @@ function renderSkills(category = "All") {
 
         const icon = document.createElement("div");
         icon.className = "skill-icon";
-        icon.textContent = skill.initials;
+        icon.textContent = getInitials(skill.title);
 
         const categoryLabel = document.createElement("p");
         categoryLabel.className = "skill-category";
@@ -35,24 +48,45 @@ function renderSkills(category = "All") {
         description.className = "skill-description";
         description.textContent = skill.description;
 
+        const provider = document.createElement("p");
+        provider.className = "provider";
+        provider.textContent = `Provided by: ${skill.provider || "Anonymous"}`;
+
         const footer = document.createElement("div");
         footer.className = "skill-card-footer";
 
         const price = document.createElement("span");
         price.className = "skill-price";
-        price.textContent = skill.price === 0 ? "Free" : `$${skill.price}/hr`;
+        price.textContent = Number(skill.price) === 0
+            ? "Free"
+            : `$${Number(skill.price).toFixed(2)}/hr`;
 
-        const type = document.createElement("span");
-        type.className = "skill-type";
-        type.textContent = "Skill session";
-
-        footer.append(price, type);
-        card.append(icon, categoryLabel, title, description, footer);
+        footer.append(price);
+        card.append(icon, categoryLabel, title, description, provider, footer);
         skillsList.appendChild(card);
     });
 
-    skillCount.textContent = `${filtered.length} ${filtered.length === 1 ? "skill" : "skills"}`;
+    skillCount.textContent =
+        `${filtered.length} ${filtered.length === 1 ? "skill" : "skills"}`;
+
     emptyMessage.hidden = filtered.length > 0;
+}
+
+async function loadSkills() {
+    loadingMessage.hidden = false;
+    errorMessage.hidden = true;
+
+    try {
+        skills = await window.apiService.fetchSkills();
+        renderSkills();
+    } catch (error) {
+        errorMessage.textContent =
+            "Unable to load skills. Make sure the backend server is running.";
+        errorMessage.hidden = false;
+        console.error(error);
+    } finally {
+        loadingMessage.hidden = true;
+    }
 }
 
 filterButtons.forEach(button => {
@@ -67,5 +101,39 @@ filterButtons.forEach(button => {
     });
 });
 
-renderSkills();
-EOF
+skillForm.addEventListener("submit", async event => {
+    event.preventDefault();
+
+    const formData = new FormData(skillForm);
+
+    const skillData = {
+        title: formData.get("title").trim(),
+        category: formData.get("category"),
+        price: Number(formData.get("price")),
+        description: formData.get("description").trim(),
+        provider: formData.get("provider").trim() || "Anonymous"
+    };
+
+    try {
+        formMessage.textContent = "Adding your skill...";
+
+        await window.apiService.createSkill(skillData);
+
+        formMessage.textContent = "Skill added successfully!";
+        skillForm.reset();
+
+        selectedCategory = "All";
+        filterButtons.forEach(button => {
+            const active = button.dataset.category === "All";
+            button.classList.toggle("active", active);
+            button.setAttribute("aria-pressed", String(active));
+        });
+
+        await loadSkills();
+    } catch (error) {
+        formMessage.textContent = error.message;
+        console.error(error);
+    }
+});
+
+loadSkills();
